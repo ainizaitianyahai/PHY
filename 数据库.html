@@ -34,7 +34,8 @@
             <li id="three">最近3月</li>
             <li id="six" >最近6月</li>
             <li id="all"  class="on">所有数据</li>
-            <li id="other">自定义范围：从 <input type="text" value="2021.01.27"/> 到 <input type="text" value="2021.01.27"/></li>
+            <li id="other">自定义范围：从 <input id="beginDate" readonly="readonly" type="text" value="" onClick="WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'#F{$dp.$D(\'endDate\');}'})"/> 到 <input id="endDate" readonly="readonly" type="text" value="" onClick="WdatePicker({dateFmt:'yyyy-MM-dd',minDate:'#F{$dp.$D(\'beginDate\');}'})"/></li>
+            <li><a id="query" class="search_button">确定</a></li>
           </ul>
 
             
@@ -53,12 +54,14 @@
   <script src="layui/layui.js" charset="utf-8"></script>
   <SCRIPT src="js/jquery-3.2.1.min.js"></SCRIPT>
   <SCRIPT src="js/phy.js"></SCRIPT>
+  <script language="javascript" type="text/javascript" src="My97DatePicker/WdatePicker.js"></script>
   <script>
     var table;
+    var table_render;
     layui.use('table', function(){
       table = layui.table;
       
-      table.render({
+      table_render = table.render({
         elem: '#userTable'
         ,url: projPath+'/user/listPage'
         ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
@@ -97,28 +100,60 @@
         }
       });
       $("#search").click(function(){
-        search("","");
+        var beginDate = $("#beginDate").val();
+        var endDate = $("#endDate").val();
+        search(beginDate,endDate);
       });
       $("#three").click(function(){
-        search("2021-01-12","2021-12-12");
+        $(".on").removeClass("on");
+        var end = new Date();
+        var begin = new Date();
+        begin.setMonth(begin.getMonth()-3);
+        var begin_str = begin.format('yyyy-MM-dd');
+        var end_str = end.format('yyyy-MM-dd');
+        search(begin_str,end_str);
+        $("#beginDate").val(begin_str);
+        $("#endDate").val(end_str);
+        $(this).addClass("on");
       });
       $("#six").click(function(){
-        search("2021-01-12","2021-12-12");
+        $(".on").removeClass("on");
+        var end = new Date();
+        var begin = new Date();
+        begin.setMonth(begin.getMonth()-6);
+        var begin_str = begin.format('yyyy-MM-dd');
+        var end_str = end.format('yyyy-MM-dd');
+        search(begin_str,end_str);
+        $("#beginDate").val(begin_str);
+        $("#endDate").val(end_str);
+        $(this).addClass("on");
       });
       $("#all").click(function(){
+        $(".on").removeClass("on");
+        $(this).addClass("on");
         search("","");
+        $("#beginDate").val("");
+        $("#endDate").val("");
+      });
+      $("#query").click(function(){
+        $(".on").removeClass("on");
+        $("#all").addClass("on");
+        var beginDate = $("#beginDate").val();
+        var endDate = $("#endDate").val();
+        search(beginDate,endDate);
       });
     })
 
     function search(registerTimeBegin,registerTimeEnd){
         var userName = $("#search_userName").val();
         var userId = $("#search_userId").val();
-        table.render({
+        var limit = table_render.config.limit;
+        table_render = table.render({
           elem: '#userTable'
           ,url: projPath+'/user/listPage?userName='+userName+'&userId='+userId+'&registerTimeBegin='+registerTimeBegin+'&registerTimeEnd='+registerTimeEnd
           ,cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
           ,height: 'full-400'
-          ,limit:20
+          ,limit:limit
           ,request: {
             pageName: 'curPage' //页码的参数名称，默认：page
             ,limitName: 'pageSize' //每页数据量的参数名，默认：limit
